@@ -1,0 +1,4 @@
+{
+    "command": "python manage.py test",
+    "working_directory": "/home/kavia/workspace/code-generation/company-data-qa-platform-2984-2993/qanda_backend"
+}
