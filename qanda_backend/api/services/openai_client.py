@@ -21,7 +21,7 @@ SYSTEM_PROMPT = (
 def _fallback_answer(question: str, context_snippets: List[str]) -> str:
     if not context_snippets:
         return "I'm not sure based on the available documents."
-    return f"Based on the documents: {context_snippets[0][:200]} ... Therefore: This is a suggested answer to '{question}'. "
+    return f"Based on the documents fallback: {context_snippets[0][:200]} ... Therefore: This is a suggested answer to '{question}'. "
 
 
 # PUBLIC_INTERFACE
