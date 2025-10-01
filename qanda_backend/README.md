@@ -2,6 +2,17 @@
 
 Django REST backend for company data Q&A with RAG workflow, FAISS, and OpenAI.
 
+Environment setup:
+- Place the .env file in qanda_backend/. The settings loader and entrypoints (manage.py, ASGI/WSGI) load this file at startup.
+- Variables:
+  - OPENAI_API_KEY=sk-...
+  - OPENAI_MODEL (default gpt-4o-mini)
+  - EMBEDDING_MODEL (default text-embedding-3-small)
+  - EMBEDDING_DIM (default 1536)
+  - FAISS_INDEX_PATH (default faiss.index)
+  - RAG_TOP_K (default 5)
+  - GEN_TEMPERATURE (default 0.2)
+
 Key features:
 - Document management with chunking
 - Embedding generation with OpenAI or deterministic fallback

@@ -50,16 +50,18 @@ def embed_texts(texts: List[str]) -> List[List[float]]:
     Returns:
         List[List[float]]: embedding vectors (dim = SETTINGS.embedding_dim)
     """
-    api_key = SETTINGS.openai_api_key
+    api_key = (SETTINGS.openai_api_key or "").strip()
     model = SETTINGS.embedding_model
     dim = SETTINGS.embedding_dim
 
     if not api_key or OpenAI is None:
         if not api_key:
-            logger.info("OpenAI API key not set; using fallback embeddings.")
+            logger.info("OpenAI API key not set or empty; using fallback embeddings.")
         if OpenAI is None:
             logger.info("OpenAI SDK unavailable; using fallback embeddings.")
         return [_fallback_vector(t, dim) for t in texts]
+    else:
+        logger.info("Embeddings: using OpenAI with key=%s model=%s", f"{api_key[:5]}*** len={len(api_key)}", model)
 
     try:
         client = OpenAI(api_key=api_key)

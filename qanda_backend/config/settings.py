@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import sys
+import os
 
 # Try to import python-dotenv safely. If unavailable, continue without failing.
 try:
@@ -27,7 +28,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # - If python-dotenv isn't installed, skip silently (env vars may still be provided by the environment).
 if load_dotenv is not None:
     try:
-        load_dotenv(dotenv_path=str(BASE_DIR / ".env"))
+        env_path = BASE_DIR / ".env"
+        load_dotenv(dotenv_path=str(env_path))
+        # lightweight confirmation for troubleshooting
+        raw_key = os.getenv("OPENAI_API_KEY", "")
+        masked = "missing"
+        if raw_key:
+            masked = f"{raw_key.strip()[:5]}*** len={len(raw_key.strip())}"
+        print(f"[INFO] settings.py: .env loaded from {env_path} OPENAI_API_KEY={masked}")
     except Exception:
         # Do not crash on dotenv issues; rely on system environment variables instead.
         pass

@@ -36,15 +36,18 @@ def generate_answer(question: str, context_snippets: List[str]) -> Dict:
     Returns:
         dict: {text, model, meta}
     """
-    api_key = SETTINGS.openai_api_key
+    api_key = (SETTINGS.openai_api_key or "").strip()
     model = SETTINGS.openai_model
     if not api_key or OpenAI is None:
         if not api_key:
-            logger.info("OpenAI API key not set; using fallback answer.")
+            logger.info("OpenAI API key not set or empty; using fallback answer.")
         if OpenAI is None:
             logger.info("OpenAI SDK unavailable; using fallback answer.")
         text = _fallback_answer(question, context_snippets)
-        return {"text": text, "model": "fallback-local", "meta": {"reason": "no_api_key_or_sdk"}}
+        reason = "no_api_key" if not api_key else "no_sdk"
+        return {"text": text, "model": "fallback-local", "meta": {"reason": reason}}
+    else:
+        logger.info("OpenAI chat: attempting with model=%s key=%s", model, f"{api_key[:5]}*** len={len(api_key)}")
 
     try:
         client = OpenAI(api_key=api_key)
