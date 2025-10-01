@@ -11,14 +11,25 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-from dotenv import load_dotenv
+
+# Try to import python-dotenv safely. If unavailable, continue without failing.
+try:
+    from dotenv import load_dotenv  # type: ignore
+except Exception:
+    load_dotenv = None  # type: ignore
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Automatically load environment variables from a .env file at the project root.
-# This enables local development secret management without changing os.getenv usage.
-load_dotenv(BASE_DIR / ".env")
+# - Use explicit dotenv_path and cast to string for compatibility across versions.
+# - If python-dotenv isn't installed, skip silently (env vars may still be provided by the environment).
+if load_dotenv is not None:
+    try:
+        load_dotenv(dotenv_path=str(BASE_DIR / ".env"))
+    except Exception:
+        # Do not crash on dotenv issues; rely on system environment variables instead.
+        pass
 
 
 # Quick-start development settings - unsuitable for production
