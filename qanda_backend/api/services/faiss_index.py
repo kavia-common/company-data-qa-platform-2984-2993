@@ -35,10 +35,25 @@ class FaissIndex:
         self.index = faiss.IndexFlatIP(self.dim)
 
     def _load_or_create(self):
+        """
+        Load an existing index+map from disk if both exist. If the loaded index has
+        zero vectors or the map size does not match the FAISS ntotal, we rebuild
+        from the database to ensure retrieval correctness.
+        """
         if os.path.exists(self.index_path) and os.path.exists(self.map_path):
             self.index = faiss.read_index(self.index_path)
             with open(self.map_path, "r") as f:
                 self.id_map = json.load(f)
+
+            # If index is empty or mismatched with id_map, rebuild from DB
+            try:
+                ntotal = int(getattr(self.index, "ntotal", 0))
+            except Exception:
+                ntotal = 0
+
+            if ntotal == 0 or ntotal != len(self.id_map):
+                # Attempt rebuild from DB to restore a consistent state
+                self.rebuild_from_db()
         else:
             self._create_index()
             self._persist()
@@ -123,8 +138,13 @@ def ensure_index_in_sync():
     Ensures FAISS index is built from DB if empty or mismatched.
     """
     idx = get_faiss_index()
-    # simple heuristic: rebuild if counts mismatch
-    if idx.index.ntotal != Embedding.objects.count():
+    # Rebuild if:
+    # - ntotal is zero while we have embeddings
+    # - ntotal doesn't match Embedding count
+    # - id_map length doesn't match ntotal
+    db_count = Embedding.objects.count()
+    ntotal = int(getattr(idx.index, "ntotal", 0))
+    if (db_count > 0 and ntotal == 0) or (ntotal != db_count) or (len(idx.id_map) != ntotal):
         idx.rebuild_from_db()
 
 

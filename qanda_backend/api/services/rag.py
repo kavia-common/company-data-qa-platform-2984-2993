@@ -55,7 +55,17 @@ def ask_question(text: str, user: UserProfile | None = None) -> Dict:
 
     gen = generate_answer(text, context_snippets)
     with transaction.atomic():
-        q = Question.objects.create(user=user, text=text, retrieval_context={"top_k": SETTINGS.rag_top_k})
+        q = Question.objects.create(
+            user=user,
+            text=text,
+            retrieval_context={
+                "top_k": SETTINGS.rag_top_k,
+                "retrieved": [
+                    {"chunk_id": r["chunk_id"], "score": r["score"], "document_id": r["document_id"]}
+                    for r in references
+                ],
+            },
+        )
         a = Answer.objects.create(
             question=q,
             answer_text=gen["text"],
