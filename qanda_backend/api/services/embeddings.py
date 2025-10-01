@@ -11,6 +11,9 @@ from typing import List
 import numpy as np  # type: ignore
 
 from .config import SETTINGS
+import logging
+
+logger = logging.getLogger("api")
 
 try:
     from openai import OpenAI  # type: ignore
@@ -52,10 +55,18 @@ def embed_texts(texts: List[str]) -> List[List[float]]:
     dim = SETTINGS.embedding_dim
 
     if not api_key or OpenAI is None:
+        if not api_key:
+            logger.info("OpenAI API key not set; using fallback embeddings.")
+        if OpenAI is None:
+            logger.info("OpenAI SDK unavailable; using fallback embeddings.")
         return [_fallback_vector(t, dim) for t in texts]
 
-    client = OpenAI(api_key=api_key)
-    # OpenAI new client returns .data as list of {embedding: [...]}
-    resp = client.embeddings.create(input=texts, model=model)
-    vectors: List[List[float]] = [d.embedding for d in resp.data]
-    return vectors
+    try:
+        client = OpenAI(api_key=api_key)
+        # OpenAI new client returns .data as list of {embedding: [...]}
+        resp = client.embeddings.create(input=texts, model=model)
+        vectors: List[List[float]] = [d.embedding for d in resp.data]
+        return vectors
+    except Exception as e:
+        logger.error(f"OpenAI embeddings failed; falling back. error={e.__class__.__name__}: {e}")
+        return [_fallback_vector(t, dim) for t in texts]

@@ -6,6 +6,9 @@ local usage. If environment variables are added later, they will override defaul
 """
 import os
 from dataclasses import dataclass
+import logging
+
+logger = logging.getLogger("api")
 
 
 @dataclass(frozen=True)
@@ -26,3 +29,18 @@ class Settings:
 
 
 SETTINGS = Settings()
+
+# Log essential settings at import for visibility (mask API key)
+try:
+    masked_key = "set" if SETTINGS.openai_api_key else "missing"
+    logger.info(
+        "Config loaded: embedding_model=%s dim=%s openai_model=%s openai_api_key=%s faiss_index_path=%s",
+        SETTINGS.embedding_model,
+        SETTINGS.embedding_dim,
+        SETTINGS.openai_model,
+        masked_key,
+        SETTINGS.faiss_index_path,
+    )
+except Exception:
+    # Avoid crashing on logging issues
+    pass
